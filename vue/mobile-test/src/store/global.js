@@ -50,17 +50,20 @@ export const useGlobalStore = defineStore('global', () => {
 
             //找上一頁的路由 
             const father = backPathObj?.findStart?.[routerData.path];
-            const { query, path } = father;
-            // 吃到 $back$=1 讓路由守衛知道是上一頁 不用儲存
-            if (path) {
-                if (query) {
-                    router.push({ path: father.path, query: { ...query, $back$: '1' } })
-                    return;
-                } else {
-                    router.push({ path: father.path, query: { $back$: '1' } })
-                    return;
+            if (father) {
+                const { query = {}, path = "" } = father;
+                // 吃到 $back$=1 讓路由守衛知道是上一頁 不用儲存
+                if (path) {
+                    if (query) {
+                        router.push({ path: father.path, query: { ...query, $back$: '1' } })
+                        return;
+                    } else {
+                        router.push({ path: father.path, query: { $back$: '1' } })
+                        return;
+                    }
                 }
             }
+
             router.push("/");
         }
         else if (mode === "toBrowser") {
@@ -72,7 +75,7 @@ export const useGlobalStore = defineStore('global', () => {
             }
         }
         else if (mode === "toGoogleMap") {
-            const url = "https://www.google.com/maps/dir//"+val;
+            const url = "https://www.google.com/maps/dir//" + val;
             try {
                 ExtCall.toBrowser(url);
             } catch (error) {
@@ -98,9 +101,23 @@ export const useGlobalStore = defineStore('global', () => {
         if (password || password === "") isToAddStore.value.password = password;
         if (mobile || mobile === "") isToAddStore.value.mobile = mobile;
     }
-    // 
+    // 註冊時記住手機密碼
+    const isToAddUser = ref({
+        status: false,
+        password: "",
+        mobile: "",
+        userId: "",
+        storeId: "",
+    });
+    const setUserData = ({ status, password, mobile, userId, storeId }) => {
+        if (status === true || status === false) isToAddUser.value.status = status;
+        if (password || password === "") isToAddUser.value.password = password;
+        if (mobile || mobile === "") isToAddUser.value.mobile = mobile;
+        if (userId || userId === "") isToAddUser.value.userId = userId;
+        if (storeId || storeId === "") isToAddUser.value.storeId = storeId;
+    }
 
 
-    return { isToAddStore, setStoreData, globalLoading, goto, router }
+    return { isToAddStore, setStoreData, globalLoading, goto, router, isToAddUser, setUserData }
 })
 

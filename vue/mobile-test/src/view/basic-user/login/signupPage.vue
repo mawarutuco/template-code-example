@@ -9,10 +9,12 @@ import { useCoolDownStore } from "@/store/smsCoolDown2";
 import { onBeforeRouteLeave } from "vue-router";
 
 import { storeToRefs } from "pinia";
+import { useRoute } from "vue-router";
 
 export default {
   emits: ["mode"],
   setup() {
+    const { query } = useRoute();
     const byPassOtp = false;
     // ========
     const smsCoolDown = useCoolDownStore();
@@ -22,7 +24,7 @@ export default {
     // ========
 
     const globalStore = useGlobalStore();
-    const { goto, setStoreData } = globalStore;
+    const { goto, setUserData } = globalStore;
     const { isToAddStore } = storeToRefs(globalStore);
 
     const inputData = ref({
@@ -30,6 +32,8 @@ export default {
       password: "",
       password2: "",
       verifyCode: "",
+      userId: "",
+      storeId: "",
     });
 
     const showSendOtpBtn = computed(() => (showText() ? false : true));
@@ -69,7 +73,7 @@ export default {
         }
         // ========
         const response = await apiPushOtp({ mobile: inputData.value.mobile });
-        if (response.success === "OK") {
+        if (response.success === "OK" || response.result) {
           Toast("驗證碼已發送");
           if (currentStep.value !== 2) {
             currentStep.value = 1;
@@ -107,11 +111,19 @@ export default {
         return;
       }
       if (form1.value.reportValidity()) {
-        // save {phone,password} to pinia
-        setStoreData({
+        // pinia 存檔
+        const {
+          mobile = "",
+          password = "",
+          userId = "",
+          storeId = "",
+        } = inputData.value;
+        setUserData({
           status: true,
-          mobile: inputData.value.mobile,
-          password: inputData.value.password,
+          mobile,
+          password,
+          userId,
+          storeId,
         });
         goto("router", "/setting/edit");
       }
@@ -127,6 +139,12 @@ export default {
     };
     // ========
     onMounted(() => {
+      if (query.storeId) {
+        inputData.value.storeId = query.storeId;
+      }
+      if (query.userId) {
+        inputData.value.userId = query.userId;
+      }
       // 計時器初始化
       init();
       setCountDown();
@@ -249,11 +267,11 @@ export default {
         </div>
       </div>
       <div
-        class="row form-word text-end text-decoration-underline cursor-pointer"
+        class="row text-end form-word text-decoration-underline cursor-pointer"
       >
         <div class="col-12 ml-4">
-          <span class="cursor-pointer" @click="$emit('mode', 'login')"
-            >去登入</span
+          <span class="cursor-pointer" @click="goto('router', '/login')"
+            >回登入</span
           >
         </div>
       </div>

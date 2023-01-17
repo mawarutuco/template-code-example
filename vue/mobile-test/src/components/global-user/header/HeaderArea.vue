@@ -1,7 +1,8 @@
 <script>
 import { ref, onMounted, computed, onBeforeMount } from "vue";
 import { useGlobalStore } from "@/store/global";
-// import { apiGetNotifyUnreadAmount } from "@/api/myfree";
+import { apiGetUserNotifyUnreadAmount } from "@/api/myfree";
+import { useRoute } from "vue-router";
 
 export default {
   props: {
@@ -12,6 +13,7 @@ export default {
     backToPath: String,
   },
   setup(props) {
+    const { meta } = useRoute();
     const backPath = ref(props.backToPath);
 
     const globalStore = useGlobalStore();
@@ -57,8 +59,17 @@ export default {
     });
     onMounted(async () => {
       setIcon(props.rightIcon);
-      if (rightIconCode.value === "icon icon-notice") {
+      if (
+        rightIconCode.value === "icon icon-notice" &&
+        localStorage.getItem("is_Login") == "1" &&
+        meta.showBell
+      ) {
         // 鈴鐺開啟才打API
+        const response = await apiGetUserNotifyUnreadAmount();
+        if (response.result && response.unread > 0) {
+          unread.value = response.unread;
+          titleText.value = String(unread.value);
+        }
       }
     });
     const countBell = computed(() => {
@@ -68,6 +79,14 @@ export default {
       return false;
     });
 
+    const handleClickArrow = () => {
+      try {
+        goto("back");
+      } catch (error) {
+        alert(error);
+      }
+    };
+
     return {
       rightIconCode,
       titleText,
@@ -76,6 +95,7 @@ export default {
       countBell,
       leftIconCode,
       backPath,
+      handleClickArrow,
     };
   },
 };
@@ -90,7 +110,7 @@ export default {
           style="cursor: pointer"
           v-show="!$route.meta.hideHeaderArrow"
         >
-          <a @click="goto('back')" class="nav-link"
+          <a @click="handleClickArrow" class="nav-link"
             ><i :class="leftIconCode"></i
           ></a>
         </li>
