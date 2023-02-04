@@ -68,11 +68,18 @@ export default {
     };
 
     const handleData = (userInfo = {}) => {
-      let { mobile, gender, age, nickname } = userInfo;
+      let { mobile, gender, age, image } = userInfo;
 
-      nickname = nickname ? nickname : "-";
+      let nickname = "-";
+      if (userInfo.nickname == "null" || !userInfo.nickname) {
+        nickname = "-";
+      } else {
+        nickname = userInfo.nickname;
+      }
+
       mobile = mobile ? mobile : "";
       gender = gender ? (gender === "male" ? "男" : "女") : "-";
+      image = image ? image : "";
 
       switch (age) {
         case 0:
@@ -114,6 +121,7 @@ export default {
         gender,
         age,
         nickname,
+        image,
       };
     };
 
@@ -155,7 +163,7 @@ export default {
           <div class="image">
             <img
               :src="userData.image"
-              onerror="this.onerror=null; this.src='https://fakeimg.pl/150x150/'"
+              onerror="this.onerror=null; this.src='https://fakeimg.pl/150x150/?text=使用者&font=noto'"
               v-if="userData.image"
             />
             <img src="@/assets/images/noavatar.png" v-if="!userData.image" />

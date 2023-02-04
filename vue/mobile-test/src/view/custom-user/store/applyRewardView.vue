@@ -61,7 +61,7 @@ export default {
             // 踢回上一頁
             goto("back");
           } else {
-            Toast(`${response.message} 請確認最低回饋金額!`);
+            Toast(`${response.message}`);
           }
         }
       } catch (error) {
@@ -120,10 +120,10 @@ export default {
             <img
               :src="storeImages"
               v-if="storeImages"
-              onerror="this.onerror=null; this.src='https://fakeimg.pl/340x200/'"
+              onerror="this.onerror=null; this.src='https://fakeimg.pl/340x200/?text=商店&font=noto'"
             />
             <img
-              src="https://fakeimg.pl/340x200/"
+              src="https://fakeimg.pl/340x200/?text=商店&font=noto"
               v-if="!storeImages"
             />            
           </div>

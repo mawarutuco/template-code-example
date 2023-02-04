@@ -4,7 +4,13 @@
   padding: 0.25rem;
 }
 
-.custom-ios {
+.product-img {
+	background-size: cover;
+	background-repeat: no-repeat;
+	background-position: center center; /* optional, center the image */
+}
+
+.custom-no-scroll {
 	margin: 0;
 	height: 100%;
 	overflow: hidden;

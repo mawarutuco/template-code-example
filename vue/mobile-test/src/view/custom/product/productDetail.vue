@@ -2,7 +2,7 @@
 import { ref, onMounted, computed, watch } from "vue";
 import { useGlobalStore } from "@/store/global";
 import { errorHandle } from "@/utils/errorHandle";
-
+import { handleStoreProfile } from "@/utils/handleData";
 import { useRoute } from "vue-router";
 
 import {
@@ -15,18 +15,20 @@ import {
 import { Toast, ToastConfirm } from "@/components/global/swal";
 import { focusInput } from "@/utils/helper";
 
+import TestCrop from "@/view/testCrop.vue";
+
 export default {
   name: "ProductDetail",
   setup() {
     const defaultData = {
-      status: "0",
+      status: false,
       image: `[""]`,
       name: "",
       description: "",
       price: "100",
       stock: 0,
     };
-    const isStoreOpen = ref(true);
+    // const isStoreOpen = ref(false);
     const productData = ref({ ...defaultData });
 
     const form1 = ref({});
@@ -39,24 +41,27 @@ export default {
 
     const imgUrl = computed(() => {
       const data = productData.value.image;
-      if (typeof data === "string") {
-        //
-        const url = JSON.parse(data);
-        return url.length > 0 ? url[0] : "";
-      } else {
-        if (productData.value.image.length > 0) {
-          const url = productData.value.image[0] || "";
-          return url;
-        }
-      }
+      return handleStoreProfile.storeImages(data);
+      // if (typeof data === "string") {
+      //   //
+      //   const url = JSON.parse(data);
+      //   return url.length > 0 ? url[0] : "";
+      // } else {
+      //   if (productData.value.image.length > 0) {
+      //     const url = productData.value.image[0] || "";
+      //     return url;
+      //   }
+      // }
 
-      return "";
+      // return "";
     });
     const handleAdd = async (e) => {
       try {
         e.preventDefault();
         if (form1.value.reportValidity()) {
-          const response = await apiAddProduct(productData.value);
+          const response = await apiAddProduct(
+            handleApiData(productData.value)
+          );
           if (response.result) {
             productData.value = { ...defaultData };
             Toast("新增完成");
@@ -67,14 +72,28 @@ export default {
         errorHandle(error);
       }
     };
+
+    const handleApiData = (productData) => {
+      const copyData = JSON.parse(JSON.stringify(productData));
+      if (copyData.status === true) {
+        copyData.status = "1";
+      } else if (copyData.status === false) {
+        copyData.status = "0";
+      }
+      return copyData;
+    };
+
     const handleEdit = async (e) => {
       try {
         e.preventDefault();
         if (form1.value.reportValidity()) {
-          if (productData.value?.status === true) {
-            productData.value.status = "1";
-          }
-          const response = await apiUpdateProduct(id.value, productData.value);
+          // if (productData.value?.status === true) {
+          //   productData.value.status = "1";
+          // }
+          const response = await apiUpdateProduct(
+            id.value,
+            handleApiData(productData.value)
+          );
           if (response.result) {
             Toast("已儲存");
             // goto("back");
@@ -142,11 +161,27 @@ export default {
             if (Array.isArray(imgUrlParse)) {
               response.data.image = JSON.stringify(imgUrlParse);
             }
+
+            // 處理 status
+            const status = response?.data?.status;
+            if (status === "1" || status === 1 || status === true) {
+              response.data.status = true;
+            } else if (status === "0" || status === 0 || status === false) {
+              response.data.status = false;
+            }
+
+            // 處理 description
+            const description = response?.data?.description;
+            if (description === "null" || !description) {
+              response.data.description = "";
+            }       
+
+            // isStoreOpen.value =
+            //   response.data.status === "1" || response.data.status == true
+            //     ? true
+            //     : false;
+
             productData.value = response.data;
-            isStoreOpen.value =
-              response.data.status === "1" || response.data.status == true
-                ? true
-                : false;
           }
         }
       } catch (error) {
@@ -154,12 +189,19 @@ export default {
       }
     });
 
-    watch(
-      () => isStoreOpen.value,
-      (val) => {
-        productData.value.status = val ? "1" : "0";
+    // watch(
+    //   () => isStoreOpen.value,
+    //   (val) => {
+    //     productData.value.status = val ? "1" : "0";
+    //   }
+    // );
+
+    const handleImgChange = (val) => {
+      if (val) {
+        productData.value.image = `["${val}"]` || "";
       }
-    );
+    };
+
     return {
       goto,
       productData,
@@ -171,11 +213,12 @@ export default {
       myUploadFile,
       handleAdd,
       handleEdit,
-      isStoreOpen,
+      // isStoreOpen,
+      handleImgChange,
     };
   },
 
-  components: {},
+  components: { TestCrop },
 };
 </script>
 
@@ -185,20 +228,29 @@ export default {
       <div class="form-container form-container-3">
         <form ref="form1">
           <div class="mb-2">
-            <label class="form-label">上架<span class="must">必填</span></label>
+            <label class="form-label"
+              >商品是否上架<span class="must"></span
+            ></label>
             <div class="form-check form-switch">
               <input
                 class="form-check-input"
                 type="checkbox"
                 role="switch"
-                v-model="isStoreOpen"
+                v-model="productData.status"
                 checked
               />
+              <!-- <input
+                class="form-check-input"
+                type="checkbox"
+                role="switch"
+                v-model="isStoreOpen"
+                checked
+              /> -->
             </div>
           </div>
           <div class="mb-2">
             <label class="form-label">圖片</label>
-            <div class="plus-container">
+            <!-- <div class="plus-container">
               <label class="form-file-label" v-if="!imgUrl">
                 <i class="icon icon-plus-grey"></i>
               </label>
@@ -219,16 +271,23 @@ export default {
                 ref="myUploadFile"
                 @change="handleFileUpload"
               />
-            </div>
+            </div> -->
+            <TestCrop
+              :originImg="imgUrl"
+              styleMode="product"
+              :openPreview="false"
+              :fixedNumber="[1, 1]"
+              @handleImgChange="handleImgChange"
+            />
           </div>
           <div class="mb-2">
             <label class="form-label"
-              >商店名稱<span class="must">必填</span></label
+              >商品名稱<span class="must">必填</span></label
             >
             <input
               type="text"
               class="form-control"
-              placeholder="請輸入商店名稱"
+              placeholder="請輸入商品名稱"
               v-model="productData.name"
               required
             />

@@ -1,5 +1,12 @@
 <script>
-import { ref, onMounted, onBeforeMount, computed, watch } from "vue";
+import {
+  ref,
+  onMounted,
+  onBeforeMount,
+  computed,
+  watch,
+  onActivated,
+} from "vue";
 import { Toast } from "@/components/global/swal.js";
 import {
   apiGetUserInfo,
@@ -14,6 +21,8 @@ import { errorHandle } from "@/utils/errorHandle";
 // 根據傳進來的模式做不同事情
 // post => 去pinia取資料
 // edit => 正常打API
+
+import TestCrop from "@/view/testCrop.vue";
 
 export default {
   name: "EditUserProfile",
@@ -58,6 +67,12 @@ export default {
     //     editData.value.gender = inputGender;
     //   }
     // };
+
+    const handleImgChange = (val) => {
+      if (val) {
+        editData.value.image = val;
+      }
+    };
 
     //檔案上傳
     const myUploadFile = ref(null);
@@ -167,13 +182,14 @@ export default {
     };
 
     const handleData = (userInfo = {}) => {
-      let {
-        mobile = "",
-        gender = "",
-        age = "",
-        nickname = "",
-        image = "",
-      } = userInfo;
+      let { mobile = "", gender = "", age = "", image = "" } = userInfo;
+      
+      let nickname = "";
+      if (userInfo.nickname == "null" || !userInfo.nickname) {
+        nickname = "";
+      } else {
+        nickname = userInfo.nickname;
+      }
 
       return {
         mobile,
@@ -197,11 +213,25 @@ export default {
           addUserPinia.value = { password, mobile, status, userId, storeId };
         } else {
           //編輯流程
-          const response = await apiGetUserInfo();
-          editData.value = handleData(response);
+          // 先檢查登入狀態
+          if (localStorage.getItem("is_Login") == "1") {
+            const response = await apiGetUserInfo();
+            editData.value = handleData(response);
+          } else {
+            goto("back");
+            Toast("請先登入");
+          }
         }
       } catch (error) {
         errorHandle(error);
+      }
+    });
+
+    onActivated(() => {
+      // 先檢查登入狀態
+      if (localStorage.getItem("is_Login") != "1") {
+        goto("back");
+        Toast("請先登入");
       }
     });
 
@@ -226,10 +256,12 @@ export default {
       addUserPinia,
       goback,
       myUploadFile,
+      TestCrop,
+      handleImgChange,
     };
   },
 
-  components: {},
+  components: { TestCrop },
 };
 </script>
 
@@ -250,11 +282,11 @@ export default {
     <section class="c-main">
       <div class="form-container">
         <form ref="form">
-          <div class="avatar-container">
+          <!-- <div class="avatar-container">
             <div class="image">
               <img
                 :src="editData.image"
-                onerror="this.onerror=null; this.src='https://fakeimg.pl/150x150/'"
+                onerror="this.onerror=null; this.src='https://fakeimg.pl/150x150/?text=使用者&font=noto'"
                 v-if="editData.image"
               />
               <img src="@/assets/images/noavatar.png" v-if="!editData.image" />
@@ -272,7 +304,15 @@ export default {
                 @change="handleFileUpload"
               />
             </div>
-          </div>
+          </div> -->
+          <TestCrop
+            imgClass="avatar-container"
+            :openPreview="false"
+            :fixedNumber="[1, 1]"
+            :originImg="editData.image"
+            @handleImgChange="handleImgChange"
+            role="user"
+          />
           <div class="mobile-container" v-if="editData.mobile">
             <div class="title">
               手機號碼<span>{{ editData.mobile }}</span>
@@ -393,6 +433,10 @@ export default {
         </form>
       </div>
     </section>
+    <!--  -->
+    <!-- <div class="row d-flex justify-content-center align-items-center m-2px">
+
+    </div> -->
   </div>
 </template>
 

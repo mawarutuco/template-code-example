@@ -11,12 +11,18 @@ import {
 import { onBeforeRouteLeave } from "vue-router";
 import { isBetweenBottom, windowScrollTo } from "@/utils/helper";
 import NoData from "@/components/global/NoData.vue";
+import { useGlobalStore } from "@/store/global";
 
 export default {
   // 回饋申請列表
   name: "RewardApply",
-  setup() {
-    let windowScrollY = 0;
+  props: {
+    tabMode: Number,
+  },
+  setup(props) {
+    const globalStore = useGlobalStore();
+    const goto = globalStore.goto;
+
     let getApiTimer = null;
 
     const walletList = ref([]);
@@ -24,6 +30,7 @@ export default {
     const total = ref(Infinity);
 
     const handleScrollGetData = () => {
+      if (props?.tabMode !== 0) return;
       if (isBetweenBottom()) {
         getListData();
       }
@@ -62,7 +69,7 @@ export default {
 
     const handleApply = async (id, isApplyConfirm, targetIndex) => {
       let swal = null;
-      let response = null;
+      let response = {};
       if (isApplyConfirm) {
         // 確認回饋
         swal = await ToastConfirm("確認回饋?");
@@ -83,12 +90,12 @@ export default {
         }
       }
 
-      if (response.result) {
+      if (response?.result === true) {
         const message = response.message || "成功!";
         // 清除data
         walletList.value.splice(targetIndex, 1);
         Toast(message);
-      } else {
+      } else if (response?.result === false) {
         const message = response.message || "失敗!";
         Toast(message + ",請檢查回饋時間");
       }
@@ -103,9 +110,7 @@ export default {
       try {
         // 位移到暫存的y
         document.body.style = "background-color: #EEEEEE;";
-        windowScrollTo({ top: windowScrollY });
         await getListData();
-
         getApiTimer = setInterval(handleScrollGetData, 500);
       } catch (error) {
         errorHandle(error);
@@ -115,15 +120,21 @@ export default {
     onBeforeRouteLeave((to, from, next) => {
       // 離開前紀錄滾動位置
       setTimeout(() => (document.body.style = ""), 500);
-      windowScrollY = window.scrollY || 0;
       clearInterval(getApiTimer);
       next();
     });
+
+    const handleDeleteAll = () => {
+      // console.log('打刪除過期的資料 API')
+    };
+
     return {
       walletList,
       APIparams,
       total,
       handleApply,
+      goto,
+      handleDeleteAll,
     };
   },
   components: { NoData },
@@ -131,7 +142,28 @@ export default {
 </script>
 
 <template>
-  <div class="main-content c-product">
+  <!-- <header class="c-header">
+    <nav class="navbar ui-navbar">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" @click="goto('back')"
+            ><i class="icon icon-back"></i
+          ></a>
+        </li>
+      </ul>
+      <h1 class="navbar-brand">
+        <img src="@/assets/images/logo_s.png" />
+      </h1>
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" @click="handleDeleteAll"
+            ><i class="icon icon-delete"></i
+          ></a>
+        </li>
+      </ul>
+    </nav>
+  </header> -->
+  <div class="c-product">
     <div>
       <br />
       <NoData v-if="walletList.length == 0" />
@@ -150,7 +182,7 @@ export default {
             </div>
             <h6>{{ item.createTime }}</h6>
           </div>
-          <div class="col d-flex flex-column justify-content-center">
+          <div class="col-4 d-flex flex-column justify-content-center">
             <button
               @click="handleApply(item.dealRecordId, true, index)"
               class="btn btn-primary custom-primary"

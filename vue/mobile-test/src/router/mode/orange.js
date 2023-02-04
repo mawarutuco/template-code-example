@@ -187,7 +187,7 @@ const myfreeRouter = [
       {
         path: "rewardApply",
         meta: {
-          showHeader: true,
+          showHeader: false,
           showFooter: false,
           requiresAuth: true,
         },
@@ -216,6 +216,17 @@ const myfreeRouter = [
         },
         components: {
           default: () => import("@/view/custom/wallet/subPage/moneyRecord.vue"),
+        },
+      },
+      {
+        path: "rewardList",
+        meta: {
+          showHeader: true,
+          showFooter: false,
+          requiresAuth: true,
+        },
+        components: {
+          default: () => import("@/view/custom/wallet/rewardList.vue"),
         },
       },
     ],
