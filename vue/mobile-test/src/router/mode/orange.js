@@ -7,25 +7,19 @@ const basicRoute = [
   {
     path: "/home",
     name: "home",
-    redirect: "/profile/view",
+    redirect: "/wallet",
     component: () => import("@/view/basic/home/homePage_.vue"),
   },
-  // {
-  //   path: "/login/forget",
-  //   name: "forget",
-  //   component: () => import("@/view/basic/login/forgetPage.vue"),
-  // },
+  {
+    path: "/forgetPassword",
+    name: "forget",
+    component: () => import("@/view/basic/login/forgetPassword.vue"),
+  },
   {
     path: "/signup",
     name: "signup",
     component: () => import("@/view/basic/login/signupPage.vue"),
   },
-  // {
-  //   path: "/password",
-  //   name: "password",
-  //   component: () => import("@/view/basic/password/passwordPage.vue"),
-  //   meta: { requiresAuth: true },
-  // },
   {
     path: "/:catchAll(.*)",
     redirect: "/home",
@@ -105,6 +99,17 @@ const myfreeRouter = [
         },
         components: {
           default: () => import("@/view/custom/setting/qrCode.vue"),
+        },
+      },
+      {
+        path: "recommender",
+        meta: {
+          showHeader: true,
+          showFooter: false,
+          requiresAuth: true,
+        },
+        components: {
+          default: () => import("@/view/custom/setting/recommenderList.vue"),
         },
       },
     ],

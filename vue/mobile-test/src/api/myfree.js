@@ -35,6 +35,8 @@ export const apiStoreForgetPwd = (data) => apiInstance.post(`/store/forgotpwd`, 
 export const apiStoreChangePwd = (data) => apiInstance.post(`/store/changepwd`, parseUrlEncode(data));
 /** /api/store/remove */
 export const apiStoreRemove = () => apiInstance.post(`/store/remove`);
+/** /api/store/restore 恢復帳號 form*/
+export const apiRestoreStore = (data) => apiInstance.formDataPOST(`/store/enabled`, data);
 
 /** store/regist a-1-3 form */
 export const apiStoreRegister = (data) => apiInstance.formDataPOST(`/store/regist`, (data));
@@ -72,6 +74,9 @@ export const apiResponseRewardApply = (rewardId, data) => apiInstance.post(`/sto
 export const apiGetRewardApplyList = (queryData) => apiInstance.get(`/store/deal/reward/list?${parseUrlEncode(queryData)}`);
 /** /store/deal/money/list 取得錢包列表 操作log S-1-7 x ?*/
 export const apiGetMoneyLogList = (queryData) => apiInstance.get(`/store/deal/money/list?${parseUrlEncode(queryData)}`);
+/** /store/deal/reward/deleteExpired 一鍵刪除過期的索取回饋列表 */
+export const apiClearExpiredRewardApply = () => apiInstance.post(`/store/deal/reward/deleteExpired`);
+
 
 // =============================================小鈴鐺
 /** /store/notify/list S-1-15 x ?*/
@@ -124,6 +129,8 @@ export const apiUserSaveFcmToken = (token) => apiInstance.post(`/notify/token`, 
 export const apiUserLogin = (data) => apiInstance.formDataLogin(`/v2/user/login`, (data));
 /** /user/remove 軟刪除 */
 export const apiRemoveUser = () => apiInstance.post(`/user/remove`);
+/**  /user/restore 恢復帳號 form */
+export const apiRestoreUser = (data) => apiInstance.formDataPOST(`/user/enabled`, data);
 /** /user 取得使用者資料 */
 export const apiGetUserInfo = () => apiInstance.get(`/user`);
 
@@ -159,3 +166,7 @@ export const apiGetUserNotifyUnreadAmount = () => apiInstance.get(`/user/notify/
 // =============================================QRcode
 export const apiParseQRcode = (data) => apiInstance.formDataPOST(`/qr/parse`, data);
 // {token:"url後面的token"}
+
+
+/** /api/store/fBind/user?page=1&limit=10  x ?*/
+export const apiGetRecommenderList = (queryData) => apiInstance.get(`/store/fBind/user?${parseUrlEncode(queryData)}`);
